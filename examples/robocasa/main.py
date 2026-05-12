@@ -78,7 +78,7 @@ def eval_main(args: Args) -> None:
 def eval_env(env_name, split, log_dir, num_trials, resize_size, replan_steps, host, port, seed):
     # set args based on task
     assert split in ["pretrain", "target"]
-    horizon = get_task_horizon(env_name) * 1.5
+    horizon = get_task_horizon(env_name)
 
     now = datetime.now()
     now_formatted = now.strftime("%Y-%m-%d-%H-%M")
