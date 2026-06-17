@@ -12,6 +12,7 @@ import tqdm
 import tyro
 import json
 import os
+from typing import Optional
 from copy import deepcopy
 from robocasa.utils.dataset_registry_utils import get_task_horizon
 
@@ -37,7 +38,9 @@ class Args:
 
     split: str = "pretrain"
     num_trials: int = 50  # Number of rollouts per task
-    task_set: list = None
+    task_set: Optional[str] = None
+    task_soup: Optional[str] = None
+    task_list_file: Optional[str] = None
 
     #################################################################################################################
     # Utils
@@ -59,7 +62,7 @@ def eval_main(args: Args) -> None:
     host = args.host
     port = args.port
 
-    all_env_names = TASK_SET_REGISTRY[args.task_soup]
+    all_env_names = resolve_env_names(args)
 
     for env_name in all_env_names:
         eval_env(
@@ -73,6 +76,29 @@ def eval_main(args: Args) -> None:
             port,
             args.seed,
         )
+
+
+def resolve_env_names(args: Args) -> list[str]:
+    if args.task_list_file is not None:
+        env_names = []
+        with open(args.task_list_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.split("#", 1)[0].strip()
+                if not line:
+                    continue
+                env_names.append(line.split()[0])
+        if not env_names:
+            raise ValueError(f"No RoboCasa tasks found in task_list_file={args.task_list_file}")
+        return env_names
+
+    task_key = args.task_set or args.task_soup
+    if task_key is None:
+        raise ValueError("Please provide --args.task_set, --args.task_soup, or --args.task_list_file.")
+
+    if task_key in TASK_SET_REGISTRY:
+        return TASK_SET_REGISTRY[task_key]
+
+    return [task_key]
 
 
 def eval_env(env_name, split, log_dir, num_trials, resize_size, replan_steps, host, port, seed):

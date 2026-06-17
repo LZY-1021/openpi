@@ -1,0 +1,6 @@
+# One RoboCasa task per line.
+# Blank lines and comments are ignored.
+
+CloseBlenderLid
+CloseFridge
+CoffeeSetupMug
